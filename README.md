@@ -315,31 +315,5 @@ python narrative_builder.py --topic "revenue department land"
 
 ---
 
-## 🏆 Scoring Alignment
-
-### Correctness & Functionality (50%)
-
-✅ Both systems produce accurate, relevant results
-✅ Semantic search returns meaningful documentation chunks
-✅ Narrative builder creates coherent storylines
-
-### Performance & Efficiency (25%)
-
-✅ Fast vector search (<100ms)
-✅ Efficient embedding pipeline
-✅ Reasonable memory usage
-
-### Code Quality (10%)
-
-✅ Modular, well-structured code
-✅ Clear documentation
-✅ Error handling
-
-### Extra Credit (15%)
-
-💡 Could implement in C++/Rust for additional points
-
----
-
-**Author**: Kautilya ML Challenge Submission
-**Date**: 2025-01-17
+**Author**: Padmasahithi Kondeti
+**Date**: 2025-11-17
