@@ -1,0 +1,12 @@
+{
+  "model_name": "all-MiniLM-L6-v2",
+  "num_articles": 33104,
+  "embedding_dim": 384,
+  "created_at": "2025-11-17T15:12:52.287858",
+  "dataset_info": {
+    "path": "Dataset_for_second_task.json",
+    "total_articles": 36483,
+    "filtered_articles": 33104,
+    "min_rating": 8
+  }
+}

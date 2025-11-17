@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kautilya ML Challenge - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .task-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .task-title h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-title p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .flex-group {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            margin-top: 25px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-rank {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .result-score {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .result-type {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+
+        .result-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c00;
+            margin-top: 15px;
+        }
+
+        .timeline-item {
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+
+        .timeline-date {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-headline {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .timeline-matters {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .cluster {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .cluster-theme {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .cluster-articles {
+            font-size: 0.9em;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-text {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Kautilya ML Challenge</h1>
+            <p>Semantic Search & Narrative Building - Web Interface</p>
+        </div>
+
+        <div class="tasks-grid">
+            <!-- Task 1: Semantic Search -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-number">1</div>
+                    <div class="task-title">
+                        <h2>Semantic Search</h2>
+                        <p>Search Twitter API Documentation</p>
+                    </div>
+                </div>
+
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="searchQuery">Search Query</label>
+                        <input
+                            type="text"
+                            id="searchQuery"
+                            name="query"
+                            placeholder="e.g., How do I fetch tweets with expansions?"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="topK">Number of Results</label>
+                        <select id="topK" name="top_k">
+                            <option value="3">3 results</option>
+                            <option value="5" selected>5 results</option>
+                            <option value="10">10 results</option>
+                            <option value="15">15 results</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="searchBtn">🔍 Search Documentation</button>
+                </form>
+
+                <div id="searchLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching...</p>
+                </div>
+
+                <div id="searchResults" class="results"></div>
+            </div>
+
+            <!-- Task 2: Narrative Builder -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-number">2</div>
+                    <div class="task-title">
+                        <h2>Narrative Builder</h2>
+                        <p>Build narratives from news articles</p>
+                    </div>
+                </div>
+
+                <form id="narrativeForm">
+                    <div class="form-group">
+                        <label for="topic">Topic</label>
+                        <input
+                            type="text"
+                            id="topic"
+                            name="topic"
+                            placeholder="e.g., Hyderabad Metro"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="threshold">Relevance Threshold</label>
+
+                        <!-- Threshold Mode Toggle -->
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: inline-flex; align-items: center; margin-right: 20px; font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="thresholdMode" value="preset" checked style="margin-right: 5px; width: auto;">
+                                Quick Select
+                            </label>
+                            <label style="display: inline-flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="thresholdMode" value="custom" style="margin-right: 5px; width: auto;">
+                                Custom Value
+                            </label>
+                        </div>
+
+                        <!-- Preset Dropdown -->
+                        <select id="thresholdPreset" name="threshold" style="display: block;">
+                            <option value="0.4">0.4 - Very broad</option>
+                            <option value="0.5">0.5 - Broad</option>
+                            <option value="0.6">0.6 - Balanced-broad</option>
+                            <option value="0.7">0.7 - Balanced</option>
+                            <option value="0.8" selected>0.8 - Focused (default)</option>
+                            <option value="0.9">0.9 - Very focused</option>
+                            <option value="0.95">0.95 - Extremely focused</option>
+                        </select>
+
+                        <!-- Custom Input -->
+                        <div id="thresholdCustomContainer" style="display: none;">
+                            <input
+                                type="number"
+                                id="thresholdCustom"
+                                name="thresholdCustom"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value="0.80"
+                                placeholder="Enter value between 0 and 1"
+                                style="margin-bottom: 8px;"
+                            >
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input
+                                    type="range"
+                                    id="thresholdSlider"
+                                    min="0"
+                                    max="100"
+                                    value="80"
+                                    style="flex: 1;"
+                                >
+                                <span id="thresholdValue" style="font-weight: 600; color: #667eea; min-width: 40px;">0.80</span>
+                            </div>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 8px; text-align: center;">
+                                0.0 (very broad) ← → 1.0 (very focused)
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="narrativeBtn">📰 Build Narrative</button>
+                </form>
+
+                <div id="narrativeLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Building narrative... This may take 20-30 seconds</p>
+                </div>
+
+                <div id="narrativeResults" class="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Semantic Search Form Handler
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const query = document.getElementById('searchQuery').value;
+            const topK = parseInt(document.getElementById('topK').value);
+
+            const loading = document.getElementById('searchLoading');
+            const results = document.getElementById('searchResults');
+            const btn = document.getElementById('searchBtn');
+
+            loading.classList.add('active');
+            results.innerHTML = '';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query, top_k: topK })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    results.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    displaySearchResults(data);
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                loading.classList.remove('active');
+                btn.disabled = false;
+            }
+        });
+
+        function displaySearchResults(data) {
+            const results = document.getElementById('searchResults');
+
+            if (!data.results || data.results.length === 0) {
+                results.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+
+            let html = `<div class="info-badge">${data.results.length} results found</div>`;
+
+            data.results.forEach(result => {
+                const metadata = result.metadata;
+                html += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <span class="result-rank">Rank #${result.rank}</span>
+                            <span class="result-score">Score: ${result.relevance_score}</span>
+                        </div>
+                        <span class="result-type">${result.type}</span>
+                        ${metadata.name ? `<div style="font-weight: 600; margin-bottom: 5px;">${metadata.name}</div>` : ''}
+                        ${metadata.method ? `<div style="font-size: 0.9em; color: #666; margin-bottom: 8px;">${metadata.method} ${metadata.url || ''}</div>` : ''}
+                        <div class="result-content">${result.content_preview || result.content}</div>
+                    </div>
+                `;
+            });
+
+            results.innerHTML = html;
+        }
+
+        // Threshold Mode Toggle Handler
+        const thresholdModeRadios = document.querySelectorAll('input[name="thresholdMode"]');
+        const thresholdPreset = document.getElementById('thresholdPreset');
+        const thresholdCustomContainer = document.getElementById('thresholdCustomContainer');
+        const thresholdCustom = document.getElementById('thresholdCustom');
+        const thresholdSlider = document.getElementById('thresholdSlider');
+
+        // Toggle between preset and custom mode
+        thresholdModeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'preset') {
+                    thresholdPreset.style.display = 'block';
+                    thresholdCustomContainer.style.display = 'none';
+                } else {
+                    thresholdPreset.style.display = 'none';
+                    thresholdCustomContainer.style.display = 'block';
+                }
+            });
+        });
+
+        // Sync slider with number input
+        const thresholdValueDisplay = document.getElementById('thresholdValue');
+
+        thresholdCustom.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (value >= 0 && value <= 1) {
+                thresholdSlider.value = Math.round(value * 100);
+                thresholdValueDisplay.textContent = value.toFixed(2);
+            }
+        });
+
+        thresholdSlider.addEventListener('input', (e) => {
+            const value = (e.target.value / 100).toFixed(2);
+            thresholdCustom.value = value;
+            thresholdValueDisplay.textContent = value;
+        });
+
+        // Narrative Builder Form Handler
+        document.getElementById('narrativeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const topic = document.getElementById('topic').value;
+
+            // Get threshold based on selected mode
+            const mode = document.querySelector('input[name="thresholdMode"]:checked').value;
+            let threshold = mode === 'preset'
+                ? parseFloat(thresholdPreset.value)
+                : parseFloat(thresholdCustom.value);
+
+            // Validate threshold
+            if (isNaN(threshold) || threshold < 0 || threshold > 1) {
+                alert('Please enter a valid threshold between 0 and 1');
+                return;
+            }
+
+            const loading = document.getElementById('narrativeLoading');
+            const results = document.getElementById('narrativeResults');
+            const btn = document.getElementById('narrativeBtn');
+
+            loading.classList.add('active');
+            results.innerHTML = '';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/narrative', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic, threshold })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    results.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    displayNarrativeResults(data);
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                loading.classList.remove('active');
+                btn.disabled = false;
+            }
+        });
+
+        function displayNarrativeResults(data) {
+            const results = document.getElementById('narrativeResults');
+
+            let html = `
+                <div class="info-badge">Topic: ${data.topic}</div>
+                <div class="info-badge">${data.total_relevant_articles} articles found</div>
+                <div class="info-badge">Threshold: ${data.relevance_threshold}</div>
+            `;
+
+            // Narrative Summary
+            if (data.narrative_summary) {
+                html += `
+                    <div class="summary-box">
+                        <div class="section-title">📝 Narrative Summary</div>
+                        <div class="summary-text">${data.narrative_summary}</div>
+                    </div>
+                `;
+            }
+
+            // Timeline
+            if (data.timeline && data.timeline.length > 0) {
+                html += `<div class="section-title">📅 Timeline of Events</div>`;
+                data.timeline.forEach(event => {
+                    html += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${event.date}</div>
+                            <div class="timeline-headline">
+                                <a href="${event.url}" target="_blank">${event.headline}</a>
+                            </div>
+                            <div class="timeline-matters">${event.why_it_matters}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Clusters
+            if (data.clusters && data.clusters.length > 0) {
+                html += `<div class="section-title">🗂️ Narrative Clusters</div>`;
+                data.clusters.forEach((cluster, idx) => {
+                    html += `
+                        <div class="cluster">
+                            <div class="cluster-theme">${cluster.theme} (${cluster.article_count} articles)</div>
+                            <div class="cluster-articles">
+                    `;
+                    cluster.articles.slice(0, 5).forEach(article => {
+                        html += `<div style="margin-bottom: 8px;">• <a href="${article.url}" target="_blank">${article.title}</a></div>`;
+                    });
+                    html += `</div></div>`;
+                });
+            }
+
+            // Graph
+            if (data.graph && data.graph.edges && data.graph.edges.length > 0) {
+                html += `
+                    <div class="section-title">🔗 Narrative Graph</div>
+                    <div class="info-badge">${data.graph.nodes.length} nodes</div>
+                    <div class="info-badge">${data.graph.edges.length} relationships</div>
+                `;
+            }
+
+            results.innerHTML = html;
+        }
+
+        // Example queries
+        const searchExamples = [
+            "How do I fetch tweets with expansions?",
+            "user authentication",
+            "rate limits",
+            "media fields"
+        ];
+
+        const narrativeExamples = [
+            "Hyderabad Metro",
+            "police training",
+            "infrastructure development"
+        ];
+    </script>
+</body>
+</html>
